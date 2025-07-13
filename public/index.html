@@ -2,20 +2,98 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#4a86e8" />
     <meta name="description" content="AhnurInc One - Plataforma de soluções inovadoras" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
     <title>AhnurInc One</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/style.css">
   </head>
   <body>
     <noscript>Você precisa habilitar JavaScript para rodar este aplicativo.</noscript>
-    <div id="root"></div>
+    
+    <!-- Main Content -->
+    <div id="root">
+      <header class="header">
+        <div class="container">
+          <h1 class="logo">AhnurInc One</h1>
+          <nav class="nav">
+            <a href="#home" class="nav-link active">Início</a>
+            <a href="#about" class="nav-link">Sobre</a>
+            <a href="#services" class="nav-link">Serviços</a>
+            <a href="#contact" class="nav-link">Contato</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="main">
+        <section id="home" class="hero">
+          <div class="container">
+            <h2 class="hero-title">Bem-vindo à AhnurInc One</h2>
+            <p class="hero-subtitle">Plataforma de soluções inovadoras para o seu negócio</p>
+            <button class="cta-button" onclick="showWelcomeMessage()">Começar Agora</button>
+          </div>
+        </section>
+
+        <section id="about" class="section">
+          <div class="container">
+            <h2 class="section-title">Sobre Nós</h2>
+            <p class="section-content">
+              A AhnurInc One é uma plataforma dedicada a fornecer soluções tecnológicas 
+              inovadoras que transformam a maneira como você conduz seus negócios.
+            </p>
+          </div>
+        </section>
+
+        <section id="services" class="section">
+          <div class="container">
+            <h2 class="section-title">Nossos Serviços</h2>
+            <div class="services-grid">
+              <div class="service-card">
+                <h3>Desenvolvimento Web</h3>
+                <p>Criamos aplicações web modernas e responsivas.</p>
+              </div>
+              <div class="service-card">
+                <h3>Consultoria Digital</h3>
+                <p>Estratégias digitais para otimizar seu negócio.</p>
+              </div>
+              <div class="service-card">
+                <h3>Suporte Técnico</h3>
+                <p>Suporte especializado para suas soluções.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" class="section">
+          <div class="container">
+            <h2 class="section-title">Entre em Contato</h2>
+            <p class="section-content">
+              Pronto para transformar sua ideia em realidade? Entre em contato conosco!
+            </p>
+            <div class="contact-info">
+              <p>Email: contato@ahnurinc.com</p>
+              <p>Website: <a href="https://github.com/AhnurInc/One" target="_blank">GitHub</a></p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="container">
+          <p>&copy; 2024 AhnurInc One. Todos os direitos reservados.</p>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="/app.js"></script>
   </body>
 </html>
