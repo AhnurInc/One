@@ -65,10 +65,17 @@ O aplicativo está configurado para ser implantado automaticamente no Firebase H
 
 ### Implantação Manual
 
+**IMPORTANTE:** Sempre execute o build antes do deployment para garantir que a versão mais recente seja implantada.
+
 ```bash
+# 1. Primeiro, faça o build da aplicação React
 npm run build
-firebase deploy
+
+# 2. Depois, faça o deploy apenas do hosting
+firebase deploy --only hosting
 ```
+
+**Nota:** O arquivo `firebase.json` está configurado para usar a pasta `build` (gerada pelo comando `npm run build`) como diretório público. Certifique-se de sempre executar o build antes do deploy.
 
 ## Informações do Projeto
 
