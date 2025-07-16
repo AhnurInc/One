@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahnur - Bem-vindo</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" href="assets/img/favicon/favicon.ico">
+    
+    <!-- CSS do Tema Material Style (ainda vamos adicionar) -->
+    <link rel="stylesheet" href="assets/css/app.min.css">
+
+    <!-- Estilo customizado para a página de login -->
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-header h1 {
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        .login-header p {
+            color: #777;
+        }
+    </style>
+</head>
+<body class="theme-blue">
+
+    <div class="container">
+        <div class="login-container">
+            <div class="login-header">
+                <!-- Espaço para futuro logotipo aqui -->
+                <h1>Ahnur</h1>
+                <p>Sistema de Consultoria de Imigração</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <input type="email" class="form-control" id="email" placeholder="Seu E-mail" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" id="password" placeholder="Sua Senha" required>
+                </div>
+                <div class="form-group d-flex justify-content-between align-items-center">
+                    <a href="#" id="forgot-password">Esqueceu a senha?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
+
+                <div class="text-center mt-3">
+                    <p>Ainda não tem uma conta? <a href="#">Contate o Administrador</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript do Tema (ainda vamos adicionar) -->
+    <script src="assets/js/app.min.js"></script>
+
+    <!-- Nosso script para interagir com o Firebase virá aqui -->
+
+</body>
+</html>
