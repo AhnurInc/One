@@ -3,12 +3,12 @@
 // Lembre-se: Pegue esta configuração do SEU NOVO projeto Firebase.
 // NUNCA compartilhe este arquivo com as chaves preenchidas.
 const firebaseConfig = {
-  apiKey: "SUA_NOVA_API_KEY",
-  authDomain: "SEU_NOVO_AUTH_DOMAIN",
-  projectId: "SEU_NOVO_PROJECT_ID",
-  storageBucket: "SEU_NOVO_STORAGE_BUCKET",
-  messagingSenderId: "SEU_NOVO_MESSAGING_SENDER_ID",
-  appId: "SEU_NOVO_APP_ID"
+  apiKey: "AIzaSyDC2-Gyr6448WW2IAAdJwoqeXTq8d_Wq9Y",
+  authDomain: "ahnur-two.firebaseapp.com",
+  projectId: "ahnur-two",
+  storageBucket: "ahnur-two.firebasestorage.app",
+  messagingSenderId: "589270591243",
+  appId: "1:589270591243:web:ba395a6ae003d582b2240e"
 };
 
 // Inicializa o Firebase
