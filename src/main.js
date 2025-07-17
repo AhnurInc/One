@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC.
+// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO AUDITADA E CORRIGIDA)
 // =================================================================
 
 // --- 1. IMPORTAÇÕES ---
@@ -14,24 +14,27 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // --- 3. FUNÇÕES GLOBAIS DE UTILIDADE ---
-
-// Função para aplicar máscara de telefone (formato brasileiro)
 function applyPhoneMask(input) {
+  if (!input) return;
   input.addEventListener('input', (e) => {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length > 11) value = value.slice(0, 11);
-    value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-    value = value.replace(/(\d{5})(\d)/, '$1-$2');
-    e.target.value = value;
+    if (value.length > 6) {
+      value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+    } else if (value.length > 2) {
+      value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+    } else {
+      value = value.replace(/^(\d*)/, '($1');
+    }
+    e.target.value = value.trim();
   });
 }
 
-// Função para popular seletores de DDI (código de país)
 function populateDDISelects() {
-    const ddiList = [ {code:"+55", name:"Brazil"}, {code:"+1", name:"USA"}, {code:"+351", name:"Portugal"}, /* adicione mais países conforme necessário */ ];
+    const ddiList = [ {code:"+55", name:"Brasil"}, {code:"+1", name:"EUA/Canadá"}, {code:"+351", name:"Portugal"}, {code:"+44", name:"Reino Unido"}, {code:"+49", name:"Alemanha"}, {code:"+33", name:"França"} ];
     const selects = document.querySelectorAll('#client-phone-ddi, #representative-phone-ddi');
     selects.forEach(select => {
-        if(!select) return;
+        if(!select || select.options.length > 1) return;
         ddiList.forEach(ddi => {
             const option = document.createElement('option');
             option.value = ddi.code;
@@ -45,9 +48,9 @@ function populateDDISelects() {
 // --- 4. LÓGICA ESPECÍFICA DE CADA PÁGINA ---
 function runPageSpecificLogic() {
   const path = window.location.pathname;
-  populateDDISelects(); // Popula DDIs em qualquer página que os tenha
+  populateDDISelects(); 
 
-  // LÓGICA DA PÁGINA DE LOGIN (sem alterações)
+  // LÓGICA DA PÁGINA DE LOGIN
   if (path.endsWith('/') || path.endsWith('index.html')) {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -67,29 +70,86 @@ function runPageSpecificLogic() {
   // LÓGICA DA PÁGINA DE CLIENTES
   if (path.endsWith('clientes.html')) {
     applyPhoneMask(document.getElementById('client-phone-number'));
-    // (O restante da lógica de clientes permanece a mesma, mas foi revisada para estabilidade)
-    const addClientForm = document.getElementById('add-client-form');
+    const form = document.getElementById('add-client-form');
     const modalTitle = document.querySelector('#add-client-modal .modal-title');
     const modalSubmitButton = document.querySelector('#add-client-modal .btn-primary');
-    document.getElementById('add-client-button').addEventListener('click', () => { addClientForm.reset(); addClientForm.setAttribute('data-mode', 'add'); addClientForm.removeAttribute('data-id'); modalTitle.textContent = 'Adicionar Novo Cliente'; modalSubmitButton.textContent = 'Salvar Cliente'; });
-    addClientForm.addEventListener('submit', async (e) => { e.preventDefault(); /* ... lógica de submit ... */ });
-    // (A lógica completa de CRUD de clientes está aqui, omitida para brevidade, mas presente no código final)
+    
+    document.getElementById('add-client-button').addEventListener('click', () => {
+        form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id');
+        modalTitle.textContent = 'Adicionar Novo Cliente'; modalSubmitButton.textContent = 'Salvar';
+        document.getElementById('client-phone-ddi').value = "+55"; // Reseta DDI
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser; if (!user) { alert("Erro: Você não está logado."); return; }
+      const mode = form.getAttribute('data-mode'); const currentId = form.getAttribute('data-id');
+      const numeroDocumento = document.getElementById('client-doc-number').value; const tipoDocumento = document.getElementById('client-doc-type').value;
+      const q = query(collection(db, "clientes"), where("tipoDocumento", "==", tipoDocumento), where("numeroDocumento", "==", numeroDocumento));
+      const querySnapshot = await getDocs(q); let isDuplicate = false;
+      querySnapshot.forEach((doc) => { if (mode === 'add' || doc.id !== currentId) { isDuplicate = true; } });
+      if (isDuplicate) { alert("Erro: A combinação de tipo e número de documento informada já está cadastrada."); return; }
+      
+      const phoneNumber = document.getElementById('client-phone-number').value;
+      const phoneDDI = document.getElementById('client-phone-ddi').value;
+
+      const clientData = {
+        nome: document.getElementById('client-name').value, email: document.getElementById('client-email').value || null,
+        telefone: phoneNumber ? `${phoneDDI} ${phoneNumber}` : null,
+        nacionalidade: document.getElementById('client-nationality').value, tipoDocumento: tipoDocumento, 
+        numeroDocumento: numeroDocumento, representativeId: document.getElementById('client-representative').value || null,
+      };
+      try {
+        if (mode === 'add') {
+          clientData.dataCriacao = serverTimestamp(); clientData.criadoPor = user.uid;
+          await addDoc(collection(db, "clientes"), clientData); alert("Cliente cadastrado com sucesso!");
+        } else {
+          await updateDoc(doc(db, "clientes", currentId), clientData); alert("Cliente atualizado com sucesso!");
+        }
+        form.reset(); $('#add-client-modal').modal('hide');
+      } catch (error) { console.error("Erro ao salvar cliente: ", error); alert("Ocorreu um erro ao salvar o cliente."); }
+    });
+    
+    const tableBody = document.getElementById('clients-table-body');
+    if (tableBody) {
+      onSnapshot(query(collection(db, "clientes")), (snapshot) => {
+        tableBody.innerHTML = ''; 
+        if (snapshot.empty) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Nenhum cliente cadastrado.</td></tr>`; return; }
+        snapshot.forEach(async (docSnapshot) => {
+          const client = docSnapshot.data(); const clientId = docSnapshot.id; const row = document.createElement('tr');
+          const contato = [client.email, client.telefone].filter(Boolean).join(' / ') || 'N/A';
+          const documento = client.tipoDocumento && client.numeroDocumento ? `${client.tipoDocumento}: ${client.numeroDocumento}` : 'N/A';
+          let representativeName = 'N/A';
+          if (client.representativeId) {
+            const repDoc = await getDoc(doc(db, "representantes", client.representativeId));
+            if (repDoc.exists()) { representativeName = repDoc.data().nome; }
+          }
+          row.innerHTML = `<td>${client.nome}</td><td>${contato}</td><td>${client.nacionalidade}</td><td>${documento}</td><td>${representativeName}</td><td><button class="btn btn-sm btn-info edit-btn" data-id="${clientId}" data-toggle="modal" data-target="#add-client-modal">Editar</button> <button class="btn btn-sm btn-danger delete-btn" data-id="${clientId}">Excluir</button></td>`;
+          tableBody.appendChild(row);
+        });
+        document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "clientes", id)); } }); });
+        document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "clientes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('client-name').value = data.nome || ''; document.getElementById('client-email').value = data.email || ''; const phoneParts = (data.telefone || " ").split(" "); document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('client-phone-number').value = phoneParts[1] || ''; document.getElementById('client-nationality').value = data.nacionalidade || ''; document.getElementById('client-doc-type').value = data.tipoDocumento || ''; document.getElementById('client-doc-number').value = data.numeroDocumento || ''; document.getElementById('client-representative').value = data.representativeId || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Cliente'; modalSubmitButton.textContent = 'Salvar Alterações'; } }); });
+      });
+    }
   }
 
-  // LÓGICA DA PÁGINA DE REPRESENTANTES (COM CORREÇÕES)
+  // LÓGICA DA PÁGINA DE REPRESENTANTES
   if (path.endsWith('representantes.html')) {
     applyPhoneMask(document.getElementById('representative-phone-number'));
     const form = document.getElementById('add-representative-form');
     const modalTitle = document.querySelector('#add-representative-modal .modal-title');
-    const modalSubmitButton = document.querySelector('#add-representative-modal .btn-primary');
     
-    document.getElementById('add-representative-button').addEventListener('click', () => { form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id'); modalTitle.textContent = 'Adicionar Novo Representante'; modalSubmitButton.textContent = 'Salvar'; });
+    document.getElementById('add-representative-button').addEventListener('click', () => {
+        form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id');
+        modalTitle.textContent = 'Adicionar Novo Representante';
+        document.getElementById('representative-phone-ddi').value = "+55";
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const user = auth.currentUser; if (!user) { alert("Erro: Você não está logado."); return; }
       const mode = form.getAttribute('data-mode');
-      const phoneNumber = document.getElementById('representative-phone-number').value.replace(/\D/g, '');
+      const phoneNumber = document.getElementById('representative-phone-number').value;
       const phoneDDI = document.getElementById('representative-phone-ddi').value;
       const repData = {
         nome: document.getElementById('representative-name').value,
@@ -118,8 +178,8 @@ function runPageSpecificLogic() {
           row.innerHTML = `<td>${rep.nome}</td><td>${rep.nacionalidade}</td><td>${contato}</td><td><button class="btn btn-sm btn-info edit-btn" data-id="${repId}" data-toggle="modal" data-target="#add-representative-modal">Editar</button> <button class="btn btn-sm btn-danger delete-btn" data-id="${repId}">Excluir</button></td>`;
           tableBody.appendChild(row);
         });
-        document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza?")) { await deleteDoc(doc(db, "representantes", id)); } }); });
-        document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "representantes", id)); if (docSnap.exists()) { /* ... lógica de preenchimento do form ... */ } }); });
+        document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "representantes", id)); } }); });
+        document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "representantes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('representative-name').value = data.nome || ''; document.getElementById('representative-nationality').value = data.nacionalidade || ''; document.getElementById('representative-email').value = data.email || ''; const phoneParts = (data.telefone || " ").split(" "); document.getElementById('representative-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('representative-phone-number').value = phoneParts[1] || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Representante'; } }); });
       });
     }
   }
