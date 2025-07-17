@@ -24,11 +24,6 @@
     <div class="card-body login-card-body">
       <p class="login-box-msg">Faça login para iniciar sua sessão</p>
 
-      <!-- 
-        A MUDANÇA ESTÁ AQUI:
-        Eu removi os atributos 'action="#"' e 'method="post"' da tag <form>.
-        Agora, apenas nosso JavaScript irá controlar o envio.
-      -->
       <form id="login-form">
         <div class="input-group mb-3">
           <input type="email" id="email" class="form-control" placeholder="E-mail" required>
@@ -76,8 +71,11 @@
 <!-- AdminLTE App -->
 <script src="adminlte/dist/js/adminlte.min.js"></script>
 
-<!-- NOSSOS SCRIPTS DO FIREBASE -->
-<script type="module" src="src/auth.js"></script>
+<!-- 
+  A MUDANÇA ESTÁ AQUI:
+  Agora estamos chamando nosso novo script principal 'main.js'.
+-->
+<script type="module" src="src/main.js"></script>
 
 </body>
 </html>
