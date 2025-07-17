@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO PÓS-AUDITORIA)
+// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO COM INTEGRAÇÃO)
 // =================================================================
 
 // --- 1. IMPORTAÇÕES ---
@@ -67,7 +67,7 @@ function runPageSpecificLogic() {
     }
   }
 
-  // LÓGICA DA PÁGINA DE CLIENTES (COM CORREÇÃO NO CARREGAMENTO)
+  // LÓGICA DA PÁGINA DE CLIENTES (COM INTEGRAÇÃO)
   if (path.endsWith('clientes.html')) {
     applyPhoneMask(document.getElementById('client-phone-number'));
     const form = document.getElementById('add-client-form');
@@ -78,6 +78,29 @@ function runPageSpecificLogic() {
         modalTitle.textContent = 'Adicionar Novo Cliente';
         document.getElementById('client-phone-ddi').value = "+55";
     });
+
+    // ===============================================================
+    // A MUDANÇA ESTÁ AQUI: Lógica para popular a lista de representantes
+    // ===============================================================
+    const representativeSelect = document.getElementById('client-representative');
+    if (representativeSelect) {
+        onSnapshot(query(collection(db, "representantes")), (snapshot) => {
+            const currentValue = representativeSelect.value;
+            // Limpa opções antigas, mantendo a primeira ("Nenhum")
+            while (representativeSelect.options.length > 1) {
+                representativeSelect.remove(1);
+            }
+            snapshot.forEach((doc) => {
+                const rep = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = rep.nome;
+                representativeSelect.appendChild(option);
+            });
+            // Restaura a seleção anterior se ainda for válida
+            representativeSelect.value = currentValue;
+        });
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -114,7 +137,6 @@ function runPageSpecificLogic() {
         tableBody.innerHTML = ''; 
         if (snapshot.empty) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Nenhum cliente cadastrado.</td></tr>`; return; }
         
-        // CORREÇÃO: Usar Promise.all para aguardar todas as buscas de representantes
         const rowsPromises = snapshot.docs.map(async (docSnapshot) => {
           const client = docSnapshot.data();
           const clientId = docSnapshot.id;
@@ -143,14 +165,13 @@ function runPageSpecificLogic() {
         const rowsHtml = await Promise.all(rowsPromises);
         tableBody.innerHTML = rowsHtml.join('');
 
-        // Reanexar eventos após a renderização
         document.querySelectorAll('#clients-table-body .delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "clientes", id)); } }); });
         document.querySelectorAll('#clients-table-body .edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "clientes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('client-name').value = data.nome || ''; document.getElementById('client-email').value = data.email || ''; const phoneParts = (data.telefone || " +55").split(" "); document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('client-phone-number').value = phoneParts.slice(1).join(' ') || ''; applyPhoneMask(document.getElementById('client-phone-number')); document.getElementById('client-nationality').value = data.nacionalidade || ''; document.getElementById('client-doc-type').value = data.tipoDocumento || ''; document.getElementById('client-doc-number').value = data.numeroDocumento || ''; document.getElementById('client-representative').value = data.representativeId || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Cliente'; } }); });
       });
     }
   }
 
-  // LÓGICA DA PÁGINA DE REPRESENTANTES (COM CORREÇÃO NA EDIÇÃO)
+  // LÓGICA DA PÁGINA DE REPRESENTANTES
   if (path.endsWith('representantes.html')) {
     applyPhoneMask(document.getElementById('representative-phone-number'));
     const form = document.getElementById('add-representative-form');
@@ -197,7 +218,6 @@ function runPageSpecificLogic() {
         });
         document.querySelectorAll('#representatives-table-body .delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "representantes", id)); } }); });
         
-        // CORREÇÃO: Lógica para preencher o formulário de edição foi restaurada
         document.querySelectorAll('#representatives-table-body .edit-btn').forEach(button => { 
           button.addEventListener('click', async (e) => { 
             const id = e.target.getAttribute('data-id'); 
