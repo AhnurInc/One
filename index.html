@@ -17,7 +17,6 @@
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <!-- Você pode colocar um futuro logo aqui -->
     <a href="#"><b>Ahnur</b> Inc</a>
   </div>
   <!-- /.login-logo -->
@@ -25,8 +24,10 @@
     <div class="card-body login-card-body">
       <p class="login-box-msg">Faça login para iniciar sua sessão</p>
 
-      <form id="login-form" action="#" method="post">
+      <!-- O ID "login-form" é MUITO importante para o nosso JavaScript -->
+      <form id="login-form">
         <div class="input-group mb-3">
+          <!-- O ID "email" é MUITO importante -->
           <input type="email" id="email" class="form-control" placeholder="E-mail" required>
           <div class="input-group-append">
             <div class="input-group-text">
@@ -35,6 +36,7 @@
           </div>
         </div>
         <div class="input-group mb-3">
+          <!-- O ID "password" é MUITO importante -->
           <input type="password" id="password" class="form-control" placeholder="Senha" required>
           <div class="input-group-append">
             <div class="input-group-text">
@@ -44,7 +46,6 @@
         </div>
         <div class="row">
           <div class="col-8">
-            <!-- Futuramente, podemos adicionar um "Lembrar-me" aqui -->
           </div>
           <!-- /.col -->
           <div class="col-4">
@@ -73,6 +74,9 @@
 <!-- AdminLTE App -->
 <script src="adminlte/dist/js/adminlte.min.js"></script>
 
-<!-- Nossos scripts do Firebase virão aqui depois -->
+<!-- NOSSOS SCRIPTS DO FIREBASE -->
+<!-- O type="module" é essencial para que o "import" funcione -->
+<script type="module" src="src/auth.js"></script>
+
 </body>
 </html>
