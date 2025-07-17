@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="adminlte/plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="adminlte/dist/css/adminlte.min.css">
   <style>
-    /* Estilo para a checklist não ficar tão larga */
     .document-row .custom-file { max-width: 200px; }
+    .view-model-btn { cursor: pointer; }
   </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -52,7 +52,7 @@
 
   <!-- Modal de Adicionar/Editar Serviço -->
   <div class="modal fade" id="service-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl" role="document"> <!-- Aumentado para XL -->
+    <div class="modal-dialog modal-xl" role="document">
       <div class="modal-content">
         <div class="modal-header"><h5 class="modal-title">Adicionar Novo Serviço</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
         <div class="modal-body">
@@ -64,14 +64,36 @@
             <div class="form-group"><label for="service-description">Breve Descrição</label><textarea class="form-control" id="service-description" rows="2"></textarea></div>
             <hr>
             <h6>Checklist de Documentos</h6>
-            <div id="document-checklist-container">
-                <!-- Linhas de documentos serão adicionadas aqui por JS -->
-            </div>
+            <div id="document-checklist-container"></div>
             <button type="button" id="add-document-button" class="btn btn-sm btn-success mt-2"><i class="fas fa-plus"></i> Adicionar Documento</button>
           </form>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" form="service-form">Salvar</button></div>
       </div>
+    </div>
+  </div>
+
+  <!-- =============================================================== -->
+  <!-- NOVO MODAL: VISUALIZADOR DE DOCUMENTOS -->
+  <!-- =============================================================== -->
+  <div class="modal fade" id="document-viewer-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewer-modal-title">Visualizando Documento</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body" style="height: 75vh;">
+                <iframe id="document-iframe" width="100%" height="100%" frameborder="0"></iframe>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div>
+                    <button type="button" id="viewer-print-btn" class="btn btn-success"><i class="fas fa-print mr-1"></i>Imprimir</button>
+                    <a id="viewer-download-btn" href="#" class="btn btn-primary" download><i class="fas fa-download mr-1"></i>Baixar</a>
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
     </div>
   </div>
 
