@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO COM INTEGRAÇÃO)
+// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO PÓS-AUDITORIA 2)
 // =================================================================
 
 // --- 1. IMPORTAÇÕES ---
@@ -67,25 +67,17 @@ function runPageSpecificLogic() {
     }
   }
 
-  // LÓGICA DA PÁGINA DE CLIENTES (COM INTEGRAÇÃO)
+  // LÓGICA DA PÁGINA DE CLIENTES (COM INTEGRAÇÃO CORRIGIDA)
   if (path.endsWith('clientes.html')) {
     applyPhoneMask(document.getElementById('client-phone-number'));
     const form = document.getElementById('add-client-form');
     const modalTitle = document.querySelector('#add-client-modal .modal-title');
-    
-    document.getElementById('add-client-button').addEventListener('click', () => {
-        form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id');
-        modalTitle.textContent = 'Adicionar Novo Cliente';
-        document.getElementById('client-phone-ddi').value = "+55";
-    });
-
-    // ===============================================================
-    // A MUDANÇA ESTÁ AQUI: Lógica para popular a lista de representantes
-    // ===============================================================
     const representativeSelect = document.getElementById('client-representative');
-    if (representativeSelect) {
-        onSnapshot(query(collection(db, "representantes")), (snapshot) => {
-            const currentValue = representativeSelect.value;
+
+    // CORREÇÃO: Função dedicada para popular a lista de representantes
+    const populateRepresentativesDropdown = async (selectedValue = '') => {
+        try {
+            const snapshot = await getDocs(query(collection(db, "representantes")));
             // Limpa opções antigas, mantendo a primeira ("Nenhum")
             while (representativeSelect.options.length > 1) {
                 representativeSelect.remove(1);
@@ -97,10 +89,21 @@ function runPageSpecificLogic() {
                 option.textContent = rep.nome;
                 representativeSelect.appendChild(option);
             });
-            // Restaura a seleção anterior se ainda for válida
-            representativeSelect.value = currentValue;
-        });
-    }
+            // Se um valor foi passado (modo de edição), seleciona-o
+            if (selectedValue) {
+                representativeSelect.value = selectedValue;
+            }
+        } catch (error) {
+            console.error("Erro ao popular representantes:", error);
+        }
+    };
+    
+    document.getElementById('add-client-button').addEventListener('click', () => {
+        form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id');
+        modalTitle.textContent = 'Adicionar Novo Cliente';
+        document.getElementById('client-phone-ddi').value = "+55";
+        populateRepresentativesDropdown(); // Popula a lista ao adicionar
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -166,12 +169,37 @@ function runPageSpecificLogic() {
         tableBody.innerHTML = rowsHtml.join('');
 
         document.querySelectorAll('#clients-table-body .delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "clientes", id)); } }); });
-        document.querySelectorAll('#clients-table-body .edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "clientes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('client-name').value = data.nome || ''; document.getElementById('client-email').value = data.email || ''; const phoneParts = (data.telefone || " +55").split(" "); document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('client-phone-number').value = phoneParts.slice(1).join(' ') || ''; applyPhoneMask(document.getElementById('client-phone-number')); document.getElementById('client-nationality').value = data.nacionalidade || ''; document.getElementById('client-doc-type').value = data.tipoDocumento || ''; document.getElementById('client-doc-number').value = data.numeroDocumento || ''; document.getElementById('client-representative').value = data.representativeId || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Cliente'; } }); });
+        
+        // CORREÇÃO: Evento de clique em editar agora chama a função de popular
+        document.querySelectorAll('#clients-table-body .edit-btn').forEach(button => { 
+            button.addEventListener('click', async (e) => { 
+                const id = e.target.getAttribute('data-id'); 
+                const docSnap = await getDoc(doc(db, "clientes", id)); 
+                if (docSnap.exists()) { 
+                    const data = docSnap.data(); 
+                    modalTitle.textContent = 'Editar Cliente'; 
+                    form.setAttribute('data-mode', 'edit'); 
+                    form.setAttribute('data-id', id);
+                    document.getElementById('client-name').value = data.nome || ''; 
+                    document.getElementById('client-email').value = data.email || ''; 
+                    const phoneParts = (data.telefone || " +55").split(" "); 
+                    document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; 
+                    document.getElementById('client-phone-number').value = phoneParts.slice(1).join(' ') || ''; 
+                    applyPhoneMask(document.getElementById('client-phone-number')); 
+                    document.getElementById('client-nationality').value = data.nacionalidade || ''; 
+                    document.getElementById('client-doc-type').value = data.tipoDocumento || ''; 
+                    document.getElementById('client-doc-number').value = data.numeroDocumento || ''; 
+                    
+                    // Popula a lista e então seleciona o valor correto
+                    await populateRepresentativesDropdown(data.representativeId || '');
+                } 
+            }); 
+        });
       });
     }
   }
 
-  // LÓGICA DA PÁGINA DE REPRESENTANTES
+  // LÓGICA DA PÁGINA DE REPRESENTANTES (Estável)
   if (path.endsWith('representantes.html')) {
     applyPhoneMask(document.getElementById('representative-phone-number'));
     const form = document.getElementById('add-representative-form');
@@ -224,6 +252,9 @@ function runPageSpecificLogic() {
             const docSnap = await getDoc(doc(db, "representantes", id)); 
             if (docSnap.exists()) { 
               const data = docSnap.data(); 
+              modalTitle.textContent = 'Editar Representante'; 
+              form.setAttribute('data-mode', 'edit'); 
+              form.setAttribute('data-id', id); 
               document.getElementById('representative-name').value = data.nome || ''; 
               document.getElementById('representative-nationality').value = data.nacionalidade || ''; 
               document.getElementById('representative-email').value = data.email || ''; 
@@ -231,9 +262,6 @@ function runPageSpecificLogic() {
               document.getElementById('representative-phone-ddi').value = phoneParts[0] || '+55';
               document.getElementById('representative-phone-number').value = phoneParts.slice(1).join(' ') || '';
               applyPhoneMask(document.getElementById('representative-phone-number'));
-              form.setAttribute('data-mode', 'edit'); 
-              form.setAttribute('data-id', id); 
-              modalTitle.textContent = 'Editar Representante'; 
             } 
           }); 
         });
