@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO COM VISUALIZADOR INTERNO)
+// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO COM VISUALIZADOR CORRIGIDO)
 // =================================================================
 
 // --- 1. IMPORTAÇÕES ---
@@ -24,6 +24,7 @@ function runPageSpecificLogic() {
   const path = window.location.pathname;
   populateDDISelects(); 
 
+  // Lógica para Login
   if (path.endsWith('/') || path.endsWith('index.html')) {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -40,6 +41,7 @@ function runPageSpecificLogic() {
     }
   }
 
+  // Lógica para Clientes
   if (path.endsWith('clientes.html')) {
     applyPhoneMask(document.getElementById('client-phone-number'));
     const form = document.getElementById('add-client-form');
@@ -119,6 +121,7 @@ function runPageSpecificLogic() {
     }
   }
 
+  // Lógica para Representantes
   if (path.endsWith('representantes.html')) {
     applyPhoneMask(document.getElementById('representative-phone-number'));
     const form = document.getElementById('add-representative-form');
@@ -157,6 +160,7 @@ function runPageSpecificLogic() {
     }
   }
 
+  // Lógica para Serviços
   if (path.endsWith('servicos.html')) {
     const form = document.getElementById('service-form');
     const modalTitle = document.querySelector('#service-modal .modal-title');
@@ -287,6 +291,7 @@ function runPageSpecificLogic() {
                 }
             }));
 
+            // Lógica para acionar o visualizador
             document.querySelectorAll('.view-model-btn, .view-model-link').forEach(button => {
                 button.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -295,26 +300,43 @@ function runPageSpecificLogic() {
                     const modal = $('#document-viewer-modal');
                     modal.find('#viewer-modal-title').text(`Modelo: ${name}`);
                     modal.find('#document-iframe').attr('src', url);
-                    modal.find('#viewer-download-btn').attr('href', url);
+                    
+                    // CORREÇÃO: Força o download ao invés de abrir na aba
+                    const downloadBtn = modal.find('#viewer-download-btn');
+                    downloadBtn.attr('href', url);
+                    downloadBtn.attr('download', name); // Adiciona o nome do arquivo ao atributo download
+
                     modal.modal('show');
                 });
             });
         });
     }
 
+    // CORREÇÃO: Lógica do botão de imprimir
     const printBtn = document.getElementById('viewer-print-btn');
     if(printBtn) {
         printBtn.addEventListener('click', () => {
             const iframe = document.getElementById('document-iframe');
-            if (iframe) { iframe.contentWindow.focus(); iframe.contentWindow.print(); }
+            if (iframe) {
+                try {
+                    iframe.contentWindow.focus(); // Foca no conteúdo do iframe
+                    iframe.contentWindow.print(); // Chama a impressão do próprio conteúdo
+                } catch (error) {
+                    // Fallback para caso de erro de segurança (cross-origin)
+                    console.error("Erro ao tentar imprimir via script:", error);
+                    alert("Não foi possível acionar a impressão via script. Por favor, clique com o botão direito sobre o documento e selecione 'Imprimir'.");
+                }
+            }
         });
     }
   }
 
+  // Lógica de Logout
   const logoutLink = document.getElementById('logout-link');
   if (logoutLink) { logoutLink.addEventListener('click', (e) => { e.preventDefault(); signOut(auth).catch((error) => console.error("Erro ao sair:", error)); }); }
 }
 
+// Guarda de Autenticação
 onAuthStateChanged(auth, (user) => {
   const path = window.location.pathname; const isOnLoginPage = path.endsWith('/') || path.endsWith('index.html');
   if (user) {
@@ -325,4 +347,5 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
+// Ponto de Entrada
 document.addEventListener('DOMContentLoaded', runPageSpecificLogic);
