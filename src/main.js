@@ -58,7 +58,8 @@ function runPageSpecificLogic() {
           return;
         }
         try {
-          // A MUDANÇA ESTÁ AQUI: Lendo os novos campos de documento
+          // A MUDANÇA ESTÁ AQUI: Lendo o novo campo de nacionalidade
+          const nacionalidade = document.getElementById('client-nationality').value;
           const tipoDocumento = document.getElementById('client-doc-type').value;
           const numeroDocumento = document.getElementById('client-doc-number').value;
 
@@ -66,7 +67,8 @@ function runPageSpecificLogic() {
             nome: document.getElementById('client-name').value,
             email: document.getElementById('client-email').value || null,
             telefone: document.getElementById('client-phone').value || null,
-            // E AQUI: Salvando os novos campos no banco de dados
+            // E AQUI: Salvando o novo campo no banco de dados
+            nacionalidade: nacionalidade || null,
             tipoDocumento: tipoDocumento || null,
             numeroDocumento: numeroDocumento || null,
             carteiraId: document.getElementById('client-wallet').value || null,
