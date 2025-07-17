@@ -15,8 +15,8 @@ import {
   collection, 
   addDoc,
   query,
-  where,           // <-- Novo: Para criar a consulta de verificação
-  getDocs,         // <-- Novo: Para executar a consulta de verificação
+  where,
+  getDocs,
   onSnapshot,
   doc,
   getDoc,
@@ -76,22 +76,29 @@ function runPageSpecificLogic() {
       const mode = addClientForm.getAttribute('data-mode');
       const currentId = addClientForm.getAttribute('data-id');
       const numeroDocumento = document.getElementById('client-doc-number').value;
+      const tipoDocumento = document.getElementById('client-doc-type').value;
 
       // ===============================================================
-      // A MUDANÇA ESTÁ AQUI: Verificação de documento duplicado
+      // A MUDANÇA ESTÁ AQUI: A consulta agora verifica TIPO e NÚMERO
       // ===============================================================
-      const q = query(collection(db, "clientes"), where("numeroDocumento", "==", numeroDocumento));
+      const q = query(
+        collection(db, "clientes"), 
+        where("tipoDocumento", "==", tipoDocumento),
+        where("numeroDocumento", "==", numeroDocumento)
+      );
       const querySnapshot = await getDocs(q);
       
       let isDuplicate = false;
       querySnapshot.forEach((doc) => {
+        // A lógica de duplicidade só se aplica se for um novo cliente,
+        // ou se o documento encontrado pertencer a um cliente diferente do que estamos editando.
         if (mode === 'add' || doc.id !== currentId) {
           isDuplicate = true;
         }
       });
 
       if (isDuplicate) {
-        alert("Erro: O número do documento informado já está cadastrado em nosso sistema.");
+        alert("Erro: A combinação de tipo e número de documento informada já está cadastrada.");
         return; // Interrompe a execução
       }
 
@@ -99,9 +106,9 @@ function runPageSpecificLogic() {
         nome: document.getElementById('client-name').value,
         email: document.getElementById('client-email').value || null,
         telefone: document.getElementById('client-phone').value || null,
-        nacionalidade: document.getElementById('client-nationality').value, // Agora é obrigatório
-        tipoDocumento: document.getElementById('client-doc-type').value, // Agora é obrigatório
-        numeroDocumento: numeroDocumento, // Agora é obrigatório
+        nacionalidade: document.getElementById('client-nationality').value,
+        tipoDocumento: tipoDocumento,
+        numeroDocumento: numeroDocumento,
         carteiraId: document.getElementById('client-wallet').value || null,
         status: "Ativo",
       };
