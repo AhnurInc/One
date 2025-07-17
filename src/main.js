@@ -1,4 +1,4 @@
-// Importa as funções da versão 10 do Firebase (mais moderna)
+// Importa as funções da versão 10 do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { 
   getAuth, 
@@ -10,18 +10,17 @@ import {
 // Importa nossa configuração
 import { firebaseConfig } from './firebase-config.js';
 
-// Inicializa o Firebase e os serviços de autenticação
+// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 /**
- * Função principal que roda o nosso aplicativo.
- * Ela decide qual lógica executar baseado na página atual.
+ * Função que roda a lógica específica de cada página.
  */
-function runApp() {
+function runPageSpecificLogic() {
   const path = window.location.pathname;
 
-  // --- LÓGICA DA PÁGINA DE LOGIN ---
+  // Lógica para a página de LOGIN
   if (path.endsWith('/') || path.endsWith('index.html')) {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
@@ -29,12 +28,7 @@ function runApp() {
         e.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-
         signInWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            // Sucesso, o 'onAuthStateChanged' vai cuidar do redirecionamento
-            console.log("Login bem-sucedido para:", userCredential.user.email);
-          })
           .catch((error) => {
             console.error("Falha no login:", error.code);
             alert("E-mail ou senha inválidos.");
@@ -43,44 +37,48 @@ function runApp() {
     }
   }
 
-  // --- LÓGICA DA PÁGINA DE DASHBOARD ---
+  // Lógica para a página de DASHBOARD
   if (path.endsWith('dashboard.html')) {
-    const logoutButton = document.getElementById('logout-button');
-    if (logoutButton) {
-      logoutButton.addEventListener('click', () => {
-        signOut(auth).catch((error) => {
-          console.error("Erro ao sair:", error);
-        });
+    const logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+      logoutLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        signOut(auth).catch((error) => console.error("Erro ao sair:", error));
       });
     }
   }
 }
 
 /**
- * Escutador de estado de autenticação.
- * Esta é a forma mais robusta de saber se um usuário está logado ou não.
- * Ele roda automaticamente quando a página carrega e sempre que o estado de login muda.
+ * Guarda de Autenticação Global
+ * Roda em todas as páginas e gerencia o estado de login do usuário.
  */
 onAuthStateChanged(auth, (user) => {
   const path = window.location.pathname;
   const isOnLoginPage = path.endsWith('/') || path.endsWith('index.html');
 
   if (user) {
-    // Usuário está LOGADO
-    console.log("Usuário está logado:", user.email);
+    // USUÁRIO LOGADO
+    console.log("Usuário verificado:", user.email);
+    // Preenche o nome do usuário no cabeçalho do dashboard
+    const userDisplayName = document.getElementById('user-display-name');
+    if (userDisplayName) {
+      userDisplayName.textContent = user.email;
+    }
+    
+    // Se estiver na página de login, redireciona para o dashboard
     if (isOnLoginPage) {
-      // Se ele está logado e na página de login, redireciona para o dashboard
       window.location.href = 'dashboard.html';
     }
   } else {
-    // Usuário está DESLOGADO
+    // USUÁRIO DESLOGADO
     console.log("Nenhum usuário logado.");
+    // Se tentar acessar qualquer página interna, redireciona para o login
     if (!isOnLoginPage) {
-      // Se ele não está logado e TENTA acessar outra página, redireciona para o login
       window.location.href = 'index.html';
     }
   }
 });
 
-// Inicia nosso aplicativo
-runApp();
+// Inicia a lógica da página assim que o HTML estiver pronto
+document.addEventListener('DOMContentLoaded', runPageSpecificLogic);
