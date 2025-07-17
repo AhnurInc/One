@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="adminlte/plugins/fontawesome-free/css/all.min.css">
   <link rel="stylesheet" href="adminlte/dist/css/adminlte.min.css">
+  <style>
+    /* Estilo para a checklist não ficar tão larga */
+    .document-row .custom-file { max-width: 200px; }
+  </style>
 </head>
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
@@ -27,12 +31,7 @@
           <li class="nav-header">MÓDULOS</li>
           <li class="nav-item"><a href="clientes.html" class="nav-link"><i class="nav-icon fas fa-users"></i><p>Clientes</p></a></li>
           <li class="nav-item"><a href="representantes.html" class="nav-link"><i class="nav-icon fas fa-user-tie"></i><p>Representantes</p></a></li>
-          <!-- Novo link, marcado como ativo -->
-          <li class="nav-item">
-            <a href="servicos.html" class="nav-link active">
-              <i class="nav-icon fas fa-concierge-bell"></i><p>Serviços</p>
-            </a>
-          </li>
+          <li class="nav-item"><a href="servicos.html" class="nav-link active"><i class="nav-icon fas fa-concierge-bell"></i><p>Serviços</p></a></li>
         </ul>
       </nav>
     </div>
@@ -41,83 +40,37 @@
   <!-- Content Wrapper -->
   <div class="content-wrapper">
     <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6"><h1 class="m-0">Catálogo de Serviços</h1></div>
-          <div class="col-sm-6">
-            <div class="float-sm-right">
-              <button id="add-service-button" class="btn btn-primary" data-toggle="modal" data-target="#service-modal">
-                <i class="fas fa-plus-circle mr-1"></i>Adicionar Serviço
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1 class="m-0">Catálogo de Serviços</h1></div><div class="col-sm-6"><div class="float-sm-right"><button id="add-service-button" class="btn btn-primary" data-toggle="modal" data-target="#service-modal"><i class="fas fa-plus-circle mr-1"></i>Adicionar Serviço</button></div></div></div></div>
     </div>
     <div class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header"><h3 class="card-title">Lista de Serviços Cadastrados</h3></div>
-              <div class="card-body">
-                <table class="table table-bordered table-hover">
-                  <thead>
-                    <tr>
-                      <th>Nome do Serviço</th>
-                      <th>Valor Padrão</th>
-                      <th>Documentos Necessários</th>
-                      <th>Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="services-table-body">
-                    <tr><td colspan="4" class="text-center">Carregando serviços...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="container-fluid"><div class="row"><div class="col-12"><div class="card"><div class="card-header"><h3 class="card-title">Lista de Serviços Cadastrados</h3></div><div class="card-body"><table class="table table-bordered table-hover">
+                  <thead><tr><th>Nome do Serviço</th><th>Valor</th><th>Documentos Necessários</th><th>Ações</th></tr></thead>
+                  <tbody id="services-table-body"><tr><td colspan="4" class="text-center">Carregando...</td></tr></tbody>
+                </table></div></div></div></div></div>
     </div>
   </div>
 
   <!-- Modal de Adicionar/Editar Serviço -->
   <div class="modal fade" id="service-modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document"> <!-- Aumentado para XL -->
       <div class="modal-content">
         <div class="modal-header"><h5 class="modal-title">Adicionar Novo Serviço</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>
         <div class="modal-body">
           <form id="service-form">
-            <div class="form-group">
-                <label for="service-name">Nome do Serviço *</label>
-                <input type="text" class="form-control" id="service-name" required>
+            <div class="row">
+                <div class="col-md-8"><div class="form-group"><label for="service-name">Nome do Serviço *</label><input type="text" class="form-control" id="service-name" required></div></div>
+                <div class="col-md-4"><div class="form-group"><label for="service-value">Valor Padrão (R$)</label><input type="number" class="form-control" id="service-value" step="0.01" min="0" placeholder="Ex: 1500.00"></div></div>
             </div>
-            <div class="form-group">
-                <label for="service-value">Valor Padrão (R$)</label>
-                <input type="number" class="form-control" id="service-value" step="0.01" min="0" placeholder="Ex: 1500.00">
-            </div>
+            <div class="form-group"><label for="service-description">Breve Descrição</label><textarea class="form-control" id="service-description" rows="2"></textarea></div>
             <hr>
             <h6>Checklist de Documentos</h6>
             <div id="document-checklist-container">
                 <!-- Linhas de documentos serão adicionadas aqui por JS -->
             </div>
             <button type="button" id="add-document-button" class="btn btn-sm btn-success mt-2"><i class="fas fa-plus"></i> Adicionar Documento</button>
-            <hr>
-            <div class="form-group">
-                <label for="service-template-file">Anexar Documento Modelo (Opcional)</label>
-                <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="service-template-file">
-                    <label class="custom-file-label" for="service-template-file">Escolher arquivo...</label>
-                </div>
-                <small id="current-file-link" class="form-text text-muted mt-2"></small>
-            </div>
           </form>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary" form="service-form">Salvar</button>
-        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" form="service-form">Salvar</button></div>
       </div>
     </div>
   </div>
@@ -126,7 +79,6 @@
   <footer class="main-footer"><strong>Copyright &copy; 2024-2025 <a href="#">Ahnur Inc</a>.</strong> Todos os direitos reservados.</footer>
 </div>
 
-<!-- SCRIPTS NECESSÁRIOS -->
 <script src="adminlte/plugins/jquery/jquery.min.js"></script>
 <script src="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="adminlte/dist/js/adminlte.min.js"></script>
