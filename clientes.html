@@ -11,7 +11,7 @@
 <body class="hold-transition sidebar-mini">
 <div class="wrapper">
 
-  <!-- Navbar e Sidebar (Reutilizados para consistência visual) -->
+  <!-- Navbar e Sidebar (Sem alterações) -->
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <ul class="navbar-nav"><li class="nav-item"><a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a></li></ul>
     <ul class="navbar-nav ml-auto"><li class="nav-item dropdown"><a class="nav-link" data-toggle="dropdown" href="#"><i class="far fa-user-circle"></i><span id="user-display-name" class="d-none d-sm-inline-block ml-1">Carregando...</span></a><div class="dropdown-menu dropdown-menu-lg dropdown-menu-right"><span class="dropdown-item dropdown-header">Minha Conta</span><div class="dropdown-divider"></div><a href="#" class="dropdown-item"><i class="fas fa-user-cog mr-2"></i> Perfil</a><div class="dropdown-divider"></div><a href="#" id="logout-link" class="dropdown-item dropdown-footer">Sair</a></div></li></ul>
@@ -21,33 +21,31 @@
     <div class="sidebar"><nav class="mt-2"><ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false"><li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="nav-icon fas fa-tachometer-alt"></i><p>Dashboard</p></a></li><li class="nav-header">MÓDULOS</li><li class="nav-item"><a href="clientes.html" class="nav-link active"><i class="nav-icon fas fa-users"></i><p>Clientes</p></a></li></ul></nav></div>
   </aside>
 
-  <!-- Área de Conteúdo Principal -->
+  <!-- Content Wrapper -->
   <div class="content-wrapper">
     <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6"><h1 class="m-0">Gerenciamento de Clientes</h1></div>
-          <div class="col-sm-6">
-            <div class="float-sm-right">
-              <button id="add-client-button" class="btn btn-primary" data-toggle="modal" data-target="#add-client-modal">
-                <i class="fas fa-plus-circle mr-1"></i>
-                Adicionar Cliente
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="container-fluid"><div class="row mb-2"><div class="col-sm-6"><h1 class="m-0">Gerenciamento de Clientes</h1></div><div class="col-sm-6"><div class="float-sm-right"><button id="add-client-button" class="btn btn-primary" data-toggle="modal" data-target="#add-client-modal"><i class="fas fa-plus-circle mr-1"></i>Adicionar Cliente</button></div></div></div></div>
     </div>
     <div class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12"><div class="card"><div class="card-header"><h3 class="card-title">Lista de Clientes</h3></div><div class="card-body"><table class="table table-bordered table-hover"><thead><tr><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Status</th><th>Ações</th></tr></thead><tbody id="clients-table-body"><tr><td colspan="5" class="text-center">Nenhum cliente cadastrado.</td></tr></tbody></table></div></div></div>
-        </div>
-      </div>
+      <div class="container-fluid"><div class="row"><div class="col-12"><div class="card"><div class="card-header"><h3 class="card-title">Lista de Clientes</h3></div><div class="card-body"><table class="table table-bordered table-hover">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>E-mail</th>
+                      <!-- A MUDANÇA ESTÁ AQUI: Nova coluna na tabela -->
+                      <th>Documento</th>
+                      <th>Status</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="clients-table-body">
+                    <tr><td colspan="5" class="text-center">Carregando clientes...</td></tr>
+                  </tbody>
+                </table></div></div></div></div></div>
     </div>
   </div>
 
-  <!-- Modal de Adicionar Cliente (Formulário Pop-up) -->
+  <!-- Modal de Adicionar Cliente -->
   <div class="modal fade" id="add-client-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -57,6 +55,23 @@
             <div class="form-group"><label for="client-name">Nome / Razão Social *</label><input type="text" class="form-control" id="client-name" required></div>
             <div class="form-group"><label for="client-email">E-mail</label><input type="email" class="form-control" id="client-email" placeholder="Deixe em branco se não possuir"></div>
             <div class="form-group"><label for="client-phone">Telefone</label><input type="text" class="form-control" id="client-phone" placeholder="Deixe em branco se não possuir"></div>
+            
+            <!-- ======================================================= -->
+            <!-- A MUDANÇA ESTÁ AQUI: Novos campos de documento          -->
+            <!-- ======================================================= -->
+            <div class="form-group">
+              <label for="client-doc-type">Tipo de Documento</label>
+              <select class="form-control" id="client-doc-type">
+                <option value="">Nenhum</option>
+                <option value="Passaporte">Passaporte</option>
+                <option value="RNM">Registro Nacional Migratório (RNM)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="client-doc-number">Número do Documento</label>
+              <input type="text" class="form-control" id="client-doc-number" placeholder="Digite o número do documento">
+            </div>
+            
             <div class="form-group"><label for="client-wallet">Carteira</label><select class="form-control" id="client-wallet"><option value="">Não possui</option></select></div>
           </form>
         </div>
