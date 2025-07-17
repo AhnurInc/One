@@ -5,8 +5,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 // A MUDANÇA CRÍTICA ESTÁ AQUI:
-// Usamos '../' para dizer "suba um nível de pasta" para encontrar o arquivo.
-import { firebaseConfig } from '../firebase-config.js';
+// O caminho correto é './' que significa "na mesma pasta".
+import { firebaseConfig } from './firebase-config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM completamente carregado. Iniciando a aplicação.");
