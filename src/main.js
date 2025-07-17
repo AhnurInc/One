@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO AUDITADA E CORRIGIDA)
+// ARQUIVO DE SCRIPT CENTRAL - AHNUR INC. (VERSÃO PÓS-AUDITORIA)
 // =================================================================
 
 // --- 1. IMPORTAÇÕES ---
@@ -41,7 +41,7 @@ function populateDDISelects() {
             option.textContent = `${ddi.name} (${ddi.code})`;
             select.appendChild(option);
         });
-        select.value = "+55"; // Padrão Brasil
+        select.value = "+55";
     });
 }
 
@@ -67,17 +67,16 @@ function runPageSpecificLogic() {
     }
   }
 
-  // LÓGICA DA PÁGINA DE CLIENTES
+  // LÓGICA DA PÁGINA DE CLIENTES (COM CORREÇÃO NO CARREGAMENTO)
   if (path.endsWith('clientes.html')) {
     applyPhoneMask(document.getElementById('client-phone-number'));
     const form = document.getElementById('add-client-form');
     const modalTitle = document.querySelector('#add-client-modal .modal-title');
-    const modalSubmitButton = document.querySelector('#add-client-modal .btn-primary');
     
     document.getElementById('add-client-button').addEventListener('click', () => {
         form.reset(); form.setAttribute('data-mode', 'add'); form.removeAttribute('data-id');
-        modalTitle.textContent = 'Adicionar Novo Cliente'; modalSubmitButton.textContent = 'Salvar';
-        document.getElementById('client-phone-ddi').value = "+55"; // Reseta DDI
+        modalTitle.textContent = 'Adicionar Novo Cliente';
+        document.getElementById('client-phone-ddi').value = "+55";
     });
 
     form.addEventListener('submit', async (e) => {
@@ -92,7 +91,6 @@ function runPageSpecificLogic() {
       
       const phoneNumber = document.getElementById('client-phone-number').value;
       const phoneDDI = document.getElementById('client-phone-ddi').value;
-
       const clientData = {
         nome: document.getElementById('client-name').value, email: document.getElementById('client-email').value || null,
         telefone: phoneNumber ? `${phoneDDI} ${phoneNumber}` : null,
@@ -112,28 +110,47 @@ function runPageSpecificLogic() {
     
     const tableBody = document.getElementById('clients-table-body');
     if (tableBody) {
-      onSnapshot(query(collection(db, "clientes")), (snapshot) => {
+      onSnapshot(query(collection(db, "clientes")), async (snapshot) => {
         tableBody.innerHTML = ''; 
         if (snapshot.empty) { tableBody.innerHTML = `<tr><td colspan="6" class="text-center">Nenhum cliente cadastrado.</td></tr>`; return; }
-        snapshot.forEach(async (docSnapshot) => {
-          const client = docSnapshot.data(); const clientId = docSnapshot.id; const row = document.createElement('tr');
+        
+        // CORREÇÃO: Usar Promise.all para aguardar todas as buscas de representantes
+        const rowsPromises = snapshot.docs.map(async (docSnapshot) => {
+          const client = docSnapshot.data();
+          const clientId = docSnapshot.id;
           const contato = [client.email, client.telefone].filter(Boolean).join(' / ') || 'N/A';
           const documento = client.tipoDocumento && client.numeroDocumento ? `${client.tipoDocumento}: ${client.numeroDocumento}` : 'N/A';
           let representativeName = 'N/A';
           if (client.representativeId) {
-            const repDoc = await getDoc(doc(db, "representantes", client.representativeId));
-            if (repDoc.exists()) { representativeName = repDoc.data().nome; }
+            try {
+              const repDoc = await getDoc(doc(db, "representantes", client.representativeId));
+              if (repDoc.exists()) { representativeName = repDoc.data().nome; }
+            } catch (e) { console.error("Erro ao buscar representante:", e); }
           }
-          row.innerHTML = `<td>${client.nome}</td><td>${contato}</td><td>${client.nacionalidade}</td><td>${documento}</td><td>${representativeName}</td><td><button class="btn btn-sm btn-info edit-btn" data-id="${clientId}" data-toggle="modal" data-target="#add-client-modal">Editar</button> <button class="btn btn-sm btn-danger delete-btn" data-id="${clientId}">Excluir</button></td>`;
-          tableBody.appendChild(row);
+          return `<tr>
+            <td>${client.nome}</td>
+            <td>${contato}</td>
+            <td>${client.nacionalidade}</td>
+            <td>${documento}</td>
+            <td>${representativeName}</td>
+            <td>
+              <button class="btn btn-sm btn-info edit-btn" data-id="${clientId}" data-toggle="modal" data-target="#add-client-modal">Editar</button>
+              <button class="btn btn-sm btn-danger delete-btn" data-id="${clientId}">Excluir</button>
+            </td>
+          </tr>`;
         });
-        document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "clientes", id)); } }); });
-        document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "clientes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('client-name').value = data.nome || ''; document.getElementById('client-email').value = data.email || ''; const phoneParts = (data.telefone || " ").split(" "); document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('client-phone-number').value = phoneParts[1] || ''; document.getElementById('client-nationality').value = data.nacionalidade || ''; document.getElementById('client-doc-type').value = data.tipoDocumento || ''; document.getElementById('client-doc-number').value = data.numeroDocumento || ''; document.getElementById('client-representative').value = data.representativeId || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Cliente'; modalSubmitButton.textContent = 'Salvar Alterações'; } }); });
+
+        const rowsHtml = await Promise.all(rowsPromises);
+        tableBody.innerHTML = rowsHtml.join('');
+
+        // Reanexar eventos após a renderização
+        document.querySelectorAll('#clients-table-body .delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "clientes", id)); } }); });
+        document.querySelectorAll('#clients-table-body .edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "clientes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('client-name').value = data.nome || ''; document.getElementById('client-email').value = data.email || ''; const phoneParts = (data.telefone || " +55").split(" "); document.getElementById('client-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('client-phone-number').value = phoneParts.slice(1).join(' ') || ''; applyPhoneMask(document.getElementById('client-phone-number')); document.getElementById('client-nationality').value = data.nacionalidade || ''; document.getElementById('client-doc-type').value = data.tipoDocumento || ''; document.getElementById('client-doc-number').value = data.numeroDocumento || ''; document.getElementById('client-representative').value = data.representativeId || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Cliente'; } }); });
       });
     }
   }
 
-  // LÓGICA DA PÁGINA DE REPRESENTANTES
+  // LÓGICA DA PÁGINA DE REPRESENTANTES (COM CORREÇÃO NA EDIÇÃO)
   if (path.endsWith('representantes.html')) {
     applyPhoneMask(document.getElementById('representative-phone-number'));
     const form = document.getElementById('add-representative-form');
@@ -178,8 +195,28 @@ function runPageSpecificLogic() {
           row.innerHTML = `<td>${rep.nome}</td><td>${rep.nacionalidade}</td><td>${contato}</td><td><button class="btn btn-sm btn-info edit-btn" data-id="${repId}" data-toggle="modal" data-target="#add-representative-modal">Editar</button> <button class="btn btn-sm btn-danger delete-btn" data-id="${repId}">Excluir</button></td>`;
           tableBody.appendChild(row);
         });
-        document.querySelectorAll('.delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "representantes", id)); } }); });
-        document.querySelectorAll('.edit-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); const docSnap = await getDoc(doc(db, "representantes", id)); if (docSnap.exists()) { const data = docSnap.data(); document.getElementById('representative-name').value = data.nome || ''; document.getElementById('representative-nationality').value = data.nacionalidade || ''; document.getElementById('representative-email').value = data.email || ''; const phoneParts = (data.telefone || " ").split(" "); document.getElementById('representative-phone-ddi').value = phoneParts[0] || '+55'; document.getElementById('representative-phone-number').value = phoneParts[1] || ''; form.setAttribute('data-mode', 'edit'); form.setAttribute('data-id', id); modalTitle.textContent = 'Editar Representante'; } }); });
+        document.querySelectorAll('#representatives-table-body .delete-btn').forEach(button => { button.addEventListener('click', async (e) => { const id = e.target.getAttribute('data-id'); if (confirm("Tem certeza que deseja excluir?")) { await deleteDoc(doc(db, "representantes", id)); } }); });
+        
+        // CORREÇÃO: Lógica para preencher o formulário de edição foi restaurada
+        document.querySelectorAll('#representatives-table-body .edit-btn').forEach(button => { 
+          button.addEventListener('click', async (e) => { 
+            const id = e.target.getAttribute('data-id'); 
+            const docSnap = await getDoc(doc(db, "representantes", id)); 
+            if (docSnap.exists()) { 
+              const data = docSnap.data(); 
+              document.getElementById('representative-name').value = data.nome || ''; 
+              document.getElementById('representative-nationality').value = data.nacionalidade || ''; 
+              document.getElementById('representative-email').value = data.email || ''; 
+              const phoneParts = (data.telefone || " +55").split(" ");
+              document.getElementById('representative-phone-ddi').value = phoneParts[0] || '+55';
+              document.getElementById('representative-phone-number').value = phoneParts.slice(1).join(' ') || '';
+              applyPhoneMask(document.getElementById('representative-phone-number'));
+              form.setAttribute('data-mode', 'edit'); 
+              form.setAttribute('data-id', id); 
+              modalTitle.textContent = 'Editar Representante'; 
+            } 
+          }); 
+        });
       });
     }
   }
