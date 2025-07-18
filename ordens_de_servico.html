@@ -4,11 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ahnur | Detalhes da Ordem de Serviço</title>
+  <!-- Fontes e AdminLTE CSS -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <link rel="stylesheet" href="adminlte/plugins/fontawesome-free/css/all.min.css">
+  <!-- **NOVO**: CSS para o Select2 -->
+  <link rel="stylesheet" href="adminlte/plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="adminlte/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+  <!-- CSS Principal do AdminLTE -->
   <link rel="stylesheet" href="adminlte/dist/css/adminlte.min.css">
   <style>
     .service-item-row input { max-width: 120px; }
+    /* Garante que o select2 ocupe o espaço correto */
+    .select2-container .select2-selection--single { height: calc(2.25rem + 2px); }
   </style>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -56,7 +63,8 @@
               <div class="row">
                 <div class="col-md-6 form-group">
                   <label for="os-client-select">Cliente *</label>
-                  <select id="os-client-select" class="form-control" required></select>
+                  <!-- **ALTERAÇÃO**: Adicionada a classe 'select2' -->
+                  <select id="os-client-select" class="form-control select2" style="width: 100%;" required></select>
                 </div>
                 <div class="col-md-6 form-group">
                   <label for="os-status-select">Status da Ordem</label>
@@ -72,13 +80,13 @@
               </div>
               <div class="form-group">
                 <label for="os-services-select">Adicionar Serviços</label>
-                <select id="os-services-select" class="form-control"></select>
+                <!-- **ALTERAÇÃO**: Adicionada a classe 'select2' -->
+                <select id="os-services-select" class="form-control select2" style="width: 100%;"></select>
               </div>
               
               <table class="table table-sm">
                 <thead><tr><th>Serviço</th><th>Valor Padrão</th><th>Valor Praticado</th><th>Ação</th></tr></thead>
                 <tbody id="os-services-table-body">
-                  <!-- Serviços adicionados aparecerão aqui -->
                 </tbody>
               </table>
 
@@ -110,7 +118,6 @@
         <div id="os-docs-section" class="card card-info card-outline" style="display: none;">
           <div class="card-header"><h3 class="card-title"><i class="fas fa-folder-open mr-1"></i>Documentos do Cliente</h3></div>
           <div class="card-body" id="os-document-checklist-container">
-            <!-- Checklist dos documentos a serem enviados pelo cliente -->
           </div>
         </div>
 
@@ -118,7 +125,6 @@
         <div id="os-generated-docs-section" class="card card-success card-outline" style="display: none;">
           <div class="card-header"><h3 class="card-title"><i class="fas fa-file-signature mr-1"></i>Documentos Gerados pelo Sistema</h3></div>
           <div class="card-body" id="os-generated-docs-container">
-            <!-- Lista dos documentos a serem gerados -->
           </div>
         </div>
 
@@ -129,8 +135,11 @@
   <footer class="main-footer"><strong>Copyright &copy; 2024-2025 <a href="#">Ahnur Inc</a>.</strong> Todos os direitos reservados.</footer>
 </div>
 
+<!-- SCRIPTS -->
 <script src="adminlte/plugins/jquery/jquery.min.js"></script>
 <script src="adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- **NOVO**: Script do Select2 -->
+<script src="adminlte/plugins/select2/js/select2.full.min.js"></script>
 <script src="adminlte/dist/js/adminlte.min.js"></script>
 <script type="module" src="src/main.js"></script>
 </body>
